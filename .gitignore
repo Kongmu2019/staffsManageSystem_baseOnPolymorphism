@@ -1,0 +1,14 @@
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.obj
+*.idb
+*.pdb
+*.obj.enc
+*.log
+*.tlog
+*.lastbuildstate
+#Visual Studio solution file
+*.sln
+*.exe
+*.ilk
