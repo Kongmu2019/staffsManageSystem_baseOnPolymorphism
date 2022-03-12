@@ -64,11 +64,22 @@ WorkerManager::WorkerManager() {
 }
 
 WorkerManager::~WorkerManager() {
+	/*------------下面的代码是错误示范-------------
 	if (this->m_EmpArray != NULL) {		//释放掉在堆区开辟的指针数组
 		delete[] this->m_EmpArray;
 		this->m_EmpArray = NULL;
 	}
-	
+	-----------↓--下面的代码才是正确的释放操作--↓----*/
+
+	if (this->m_EmpArray != NULL) {
+		for (int i = 0; i < this->m_EmpNum; i++) {
+			if (this->m_EmpArray[i] != NULL) {
+				delete this->m_EmpArray[i];
+			}
+		}
+		delete[] this->m_EmpArray;
+		this->m_EmpArray = NULL;
+	}
 
 }
 
@@ -408,6 +419,60 @@ void WorkerManager::Find_Emp() {
 	system("cls");
 }
 
+//按职工编号进行排序
+void WorkerManager::Sort_Emp() {
+	if (this->m_FileIsEmpty) {
+		cout << "文件不存在或为空！" << endl;
+		system("pause");
+		system("cls");
+	}
+	else {
+		cout << "请输入排序方式：" << endl;
+		cout << "1、按照升序排序" << endl;
+		cout << "2、按照降序排序" << endl;
+		int select = 0;
+		cin >> select;
+		//简单选择排序算法
+		for (int i = 0; i < m_EmpNum; i++) {
+			int min_or_max = i;	//每次循环假设第一个下标的Id是最小或最大的
+			for (int j = i + 1; j < m_EmpNum; j++) {
+				if (select == 1) {//升序
+					if (m_EmpArray[j]->m_Id < m_EmpArray[min_or_max]->m_Id) {
+						min_or_max = j;
+					}
+				}
+				else if (select == 2) {//降序
+					if (m_EmpArray[j]->m_Id > m_EmpArray[min_or_max]->m_Id) {
+						min_or_max = j;
+					}
+				}
+				else {
+					cout << "选项选择错误，请选择1或2。" << endl;
+				}
+			}
+			
+			//用于交换的代码
+			//这里判断一开始认定的那个最大值和最小值i是不是计算出来的最大值或最小值min，若不是就交换
+			Worker* temp = NULL;
+			if (min_or_max != i) {
+				temp = m_EmpArray[min_or_max];
+				m_EmpArray[min_or_max] = m_EmpArray[i];
+				m_EmpArray[i] = temp;
+			}
+			
+		}
+
+		//保存排序后的结果到文件中
+		this->save();
+
+		//提示用户排序成功
+		cout << "排序成功，排序结果为：" << endl;
+		this->show_Emp();
+
+		
+	}
+}
+
 //判断职工是否存在，如果存在返回职工所在数组中的位置，不存在返回-1
 int WorkerManager::IsExist(int id) {
 	int index = -1;
@@ -418,4 +483,32 @@ int WorkerManager::IsExist(int id) {
 		}
 	}
 	return index;
+}
+
+//清空文件
+void WorkerManager::Clean_File() {
+	cout << "确认要清空所有职工信息吗？" << endl;
+	cout << "1----确定" << endl;
+	cout << "2----取消" << endl;
+	int select = 0;
+	cin >> select;
+	if (select == 1) {
+		ofstream ofs(FILENAME, ios::trunc);		//若文件存在，删除文件并创建一个新的空文件
+		ofs.close();
+		if (this->m_EmpArray != NULL) {
+			for (int i = 0; i < this->m_EmpNum; i++) {
+				delete this->m_EmpArray[i];		//释放掉堆区的每一个指针元素
+				this->m_EmpArray[i] = NULL;
+			}
+			//释放数组中的指针元素完毕后，再释放堆区的指针数组
+			delete[] this->m_EmpArray;
+			this->m_EmpArray = NULL;		//让释放空间后的指针置空，防止野指针
+			this->m_EmpNum = 0;				//职工人数置为0
+			this->m_FileIsEmpty = true;		//置文件空标志为真
+		}
+
+		cout << "清空完毕！" << endl;
+	}
+	system("pause");
+	system("cls");
 }
